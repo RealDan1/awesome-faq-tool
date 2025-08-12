@@ -4,7 +4,7 @@ import { useState } from 'react';
 import type { FaqData } from '../types/types';
 import { sortByAlphabet } from '../utils/sort';
 
-export default function FaqList() {
+export default function Faq() {
   const [faqs, setFaqs] = useState<FaqData[]>([
     {
       id: '1',
@@ -13,12 +13,12 @@ export default function FaqList() {
     },
   ]);
 
-  const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState('');
+  const [question, setQuestion] = useState<string>('');
+  const [answer, setAnswer] = useState<string>('');
+  const [isDelayed, setIsDelayed] = useState<boolean>(false);
 
-  const handleAddFaq = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!question || !answer) return;
+  //utility function for adding a faq and resetting the faqs form:
+  function addFaq() {
     setFaqs([
       ...faqs,
       {
@@ -29,6 +29,19 @@ export default function FaqList() {
     ]);
     setQuestion('');
     setAnswer('');
+  }
+
+  //all handler functions:
+  const handleAddFaq = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!question || !answer) return;
+    if (isDelayed) {
+      setTimeout(() => {
+        addFaq();
+      }, 5000);
+    } else {
+      addFaq();
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -46,31 +59,43 @@ export default function FaqList() {
   };
 
   return (
-    <div>
+    <div className="flex flex-col p-1 m-2 md:p-4 md:m-5  ">
       <Header />
 
-      <form onSubmit={handleAddFaq}>
-        <label htmlFor="question">Question:</label>
-        <input type="text" value={question} onChange={(e) => setQuestion(e.target.value)} />
+      <div className="flex flex-col">
+        <div className="border-1 border-black text-left self-center flex-col w-full max-w-7/10 ">
+          <form className=" flex flex-col justify-self-start" onSubmit={handleAddFaq}>
+            <h1 className="text-2xl md:text-3xl">Create a new Question</h1>
+            <label htmlFor="question">Question:</label>
+            <input id="question" type="text" value={question} onChange={(e) => setQuestion(e.target.value)} />
 
-        <label htmlFor="answer">Answer:</label>
-        <input type="text" value={answer} onChange={(e) => setAnswer(e.target.value)} />
+            <label htmlFor="answer">Answer:</label>
+            <input id="answer" type="text" value={answer} onChange={(e) => setAnswer(e.target.value)} />
 
-        <button type="submit">Add</button>
-      </form>
+            <button className="bg-emerald-400 w p-[0.5rem 1rem]" type="submit">
+              Create a question
+            </button>
+          </form>
+          <label htmlFor="delay">Add 5 second delay</label>
+          <input id="delay" type="checkbox" checked={isDelayed} onChange={() => setIsDelayed(!isDelayed)} />
 
-      {faqs.map((item) => (
-        <FaqItem
-          key={item.id}
-          id={item.id}
-          question={item.question}
-          answer={item.answer}
-          handleDelete={() => handleDelete(item.id)}
-        />
-      ))}
+          {faqs.map((item) => (
+            <FaqItem
+              key={item.id}
+              question={item.question}
+              answer={item.answer}
+              handleDelete={() => handleDelete(item.id)}
+            />
+          ))}
 
-      <button onClick={handleClearAllFaqs}>Clear all faqs</button>
-      <button onClick={handleSort}>Sort</button>
+          {faqs.length > 0 ? (
+            <>
+              <button onClick={handleClearAllFaqs}>Clear all faqs</button>
+              {faqs.length > 1 ? <button onClick={handleSort}>Sort</button> : null}
+            </>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }
